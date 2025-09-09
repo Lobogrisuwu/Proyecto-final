@@ -1,0 +1,21 @@
+﻿# Entornos / secretos
+venv/
+.venv/
+.env
+.env.*
+*.pem
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
