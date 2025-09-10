@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, Like, Comment, Follow
+from .models import Post, Comment, Like, Follow
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
