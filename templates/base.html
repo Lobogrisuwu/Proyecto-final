@@ -1,32 +1,25 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>InstaX</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<nav class="navbar navbar-light bg-white border-bottom px-3">
-  <a class="navbar-brand" href="/">InstaX</a>
-  <div>
-    {% if user.is_authenticated %}
-      <span class="me-2">Hola, {{ user.username }}</span>
-      <a class="btn btn-outline-secondary btn-sm" href="/accounts/logout/">Salir</a>
-    {% else %}
-      <a class="btn btn-primary btn-sm" href="/accounts/login/">Entrar</a>
-      <a class="btn btn-outline-primary btn-sm" href="/accounts/register/">Registro</a>
-    {% endif %}
-  </div>
-</nav>
-
-<div class="container py-4">
-  {% if messages %}
-    {% for m in messages %}
-      <div class="alert alert-{{ m.tags|default:'info' }} mb-3">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
-  {% block content %}{% endblock %}
-</div>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Instax</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="container py-4">
+    <nav class="mb-3 d-flex gap-2">
+      <a href="/">Feed</a>
+      {% if user.is_authenticated %}
+        <span class="text-muted">Hola, @{{ user.username }}</span>
+        <a href="{% url 'logout' %}">Salir</a>
+      {% else %}
+        <a href="{% url 'login' %}">Entrar</a>
+        <a href="{% url 'register' %}">Registro</a>
+      {% endif %}
+    </nav>
+    {% block content %}{% endblock %}
+  </body>
 </html>
