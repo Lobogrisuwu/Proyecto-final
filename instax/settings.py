@@ -104,5 +104,6 @@ if os.getenv("USE_S3", "False") == "True":
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 # === Autenticación ===
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'feed'
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "feed"
+LOGOUT_REDIRECT_URL = "login"     # opcional, pero útil

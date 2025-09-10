@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<h3 class="mb-3">Registro</h3>
+<h2>Registro</h2>
 <form method="post">
   {% csrf_token %}
+  {{ form.non_field_errors }}
   {{ form.as_p }}
   <button class="btn btn-success">Crear cuenta</button>
 </form>
