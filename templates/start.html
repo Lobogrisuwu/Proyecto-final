@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:480px">
+  <h3 class="mb-3">Intax — sesión instantánea</h3>
+  <form method="post">
+    {% csrf_token %}
+    <label class="form-label">Elige un nombre de usuario temporal</label>
+    <input name="name" class="form-control" placeholder="ej. lobo_azul" maxlength="30" required>
+    <small class="text-muted d-block mt-1">* Tus publicaciones caducan a los 60 minutos.</small>
+    <button class="btn btn-primary mt-3">Entrar</button>
+  </form>
+</div>
+{% endblock %}

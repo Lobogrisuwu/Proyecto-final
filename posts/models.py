@@ -1,48 +1,59 @@
+# posts/models.py
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
 from django.contrib.auth.models import User
+from django.dispatch import receiver
+from django.db.models.signals import post_delete
+
+def default_expiry():
+    return timezone.now() + timedelta(minutes=60)
 
 class Post(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
-    image = models.ImageField(upload_to="posts/")  # S3: s3://bucket/posts/...
-    caption = models.TextField(blank=True)
+    # Dueño “temporal”
+    owner_token = models.CharField(max_length=64, db_index=True)    # un UUID que guardamos en sesión
+    owner_name  = models.CharField(max_length=30)                   # el nombre que escribió el usuario
+
+    # Contenido
+    image = models.ImageField(upload_to='posts/')
+    caption = models.CharField(max_length=2200, blank=True)
+
+    # Fechas
     created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(default=default_expiry, db_index=True)
 
-    def likes_count(self):
-        return self.likes.count()
-
-    def comments_count(self):
-        return self.comments.count()
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
 
     def __str__(self):
-        return f"{self.author.username} - {self.created_at:%Y-%m-%d %H:%M}"
+        return f"{self.owner_name}: {self.caption[:30]}"
 
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
+    post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
+    owner_token = models.CharField(max_length=64, db_index=True)
+    owner_name  = models.CharField(max_length=30)
+    text = models.TextField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Comentario de {self.user.username} en Post {self.post_id}"
 
 class Like(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
+    owner_token = models.CharField(max_length=64, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("post", "user")
-
-    def __str__(self):
-        return f"{self.user.username} ❤️ {self.post_id}"
+        unique_together = ('post', 'owner_token')
 
 class Follow(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
-    followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
-    created_at = models.DateTimeField(auto_now_add=True)
+    # Ya no usamos seguir/seguidores; la dejamos por compatibilidad si la referenciabas
+    follower = models.ForeignKey(User, related_name='follows', on_delete=models.CASCADE)
+    followed = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)
 
-    class Meta:
-        unique_together = ('follower', 'followed')
-
-    def __str__(self):
-        return f"{self.follower.username} → {self.followed.username}"
+# --- Borrar el archivo en S3 cuando se borra un Post ---
+@receiver(post_delete, sender=Post)
+def delete_image_file(sender, instance, **kwargs):
+    try:
+        if instance.image and instance.image.storage.exists(instance.image.name):
+            instance.image.delete(save=False)
+    except Exception:
+        # Evita romper la transacción si S3 falla; el purge periódico volverá a intentar
+        pass
