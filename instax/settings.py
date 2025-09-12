@@ -11,6 +11,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "cambia-esta-clave")
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 # ---- Apps instaladas ----
 INSTALLED_APPS = [
@@ -65,7 +66,7 @@ DATABASES = {
     }
 }
 
-# ---- Validadores de contraseñas (no tan relevantes si usas usuarios temporales) ----
+# ---- Validadores de contraseñas ----
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -97,17 +98,20 @@ AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
 
 AWS_DEFAULT_ACL = None
 AWS_S3_FILE_OVERWRITE = False
+
+# FORZAR URLs firmadas (muy importante)
 AWS_QUERYSTRING_AUTH = True
 AWS_S3_SIGNATURE_VERSION = "s3v4"
-AWS_QUERYSTRING_EXPIRE = 3600
+AWS_QUERYSTRING_EXPIRE = 3600  # 1 hora
 
-AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
-MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+# No usar dominio custom → Django debe generar las firmadas
+AWS_S3_CUSTOM_DOMAIN = None
+MEDIA_URL = f"/media/"
 
 # ---- Sesiones de usuarios temporales ----
 SESSION_COOKIE_AGE = 60 * 60          # 1 hora
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# ---- Login redirecciones (para vistas clásicas si usas auth normal) ----
+# ---- Login redirecciones ----
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'feed'
